@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "771871107063",
+    "project_id": "my-pixel-talks",
+    "storage_bucket": "my-pixel-talks.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:771871107063:android:182dd3daa22eff580270f2",
+        "android_client_info": {
+          "package_name": "com.example.my_pixel_talks"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "771871107063-n9qnodp28s6a7qpcltaobs1ea6jvhsfe.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.my_pixel_talks",
+            "certificate_hash": "b7e8bebd2f2ab567c10855b87bf96363676d4c08"
+          }
+        },
+        {
+          "client_id": "771871107063-02j9b2ccklr65jvak7vdeaviaj1t9v1r.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAOiJimspOpsunpYt7H9wI4UIVVvBxwXY8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "771871107063-02j9b2ccklr65jvak7vdeaviaj1t9v1r.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "771871107063-ueqf1hdr346r9bliv6u1d09gngfrut0i.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.myPixelTalks"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

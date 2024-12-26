@@ -1,0 +1,1 @@
+{"flutter":{"platforms":{"android":{"default":{"projectId":"my-pixel-talks","appId":"1:771871107063:android:182dd3daa22eff580270f2","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"my-pixel-talks","configurations":{"android":"1:771871107063:android:182dd3daa22eff580270f2","ios":"1:771871107063:ios:8e39bca93fc75ef40270f2"}}}}}}
