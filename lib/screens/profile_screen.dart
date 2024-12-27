@@ -229,6 +229,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           setState(() {
                             _image = image.path;
                           });
+                          Apis.updateProfilePicture(File(_image!));
                           // ignore: use_build_context_synchronously
                           Navigator.pop(context);
                         }
@@ -249,6 +250,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           setState(() {
                             _image = image.path;
                           });
+                          Apis.updateProfilePicture(File(_image!));
                           // ignore: use_build_context_synchronously
                           Navigator.pop(context);
                         }

@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:my_pixel_talks/models/chat_user.dart';
+import 'package:my_pixel_talks/screens/chat_screen.dart';
 
 class ChatUserCard extends StatefulWidget {
   final ChatUser user;
@@ -22,7 +23,9 @@ class _ChatUserCardState extends State<ChatUserCard> {
       color: Colors.blue.shade100,
       elevation: 0.8,
       child: InkWell(
-        onTap: () {},
+        onTap: () {
+          Navigator.push(context, MaterialPageRoute(builder: (_) => ChatScreen(user: widget.user)));
+        },
         splashColor: Colors.blue.shade300,
         highlightColor: Colors.blue.shade300,
         child: ListTile(

@@ -19,7 +19,7 @@ class _SplashScreenState extends State<SplashScreen> {
     Future.delayed(const Duration(milliseconds: 2000), () {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
       SystemChrome.setSystemUIOverlayStyle(
-          const SystemUiOverlayStyle(statusBarColor: Colors.transparent));
+          const SystemUiOverlayStyle(statusBarColor: Colors.white));
       if (Apis.auth.currentUser != null) {
         Navigator.pushReplacement(
             // ignore: use_build_context_synchronously

@@ -1,6 +1,11 @@
+import 'dart:convert';
+import 'dart:developer';
+import 'dart:io';
+import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:my_pixel_talks/models/chat_user.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class Apis {
   static FirebaseAuth auth = FirebaseAuth.instance;
@@ -57,5 +62,50 @@ class Apis {
     await firestore.collection('users').doc(user.uid).update(
       {'name': me.name, 'about': me.about},
     );
+  }
+
+  static Future<void> updateProfilePicture(File file) async {
+    try {
+      // Getting the upload preset and Cloudinary details from environment variables
+      final cloudName = dotenv.env['CLOUDINARY_CLOUD_NAME'];
+      final uploadPreset = dotenv.env['CLOUDINARY_UPLOAD_PRESET'];
+
+      // Construct the Cloudinary upload URL
+      final uploadUrl =
+          Uri.parse('https://api.cloudinary.com/v1_1/$cloudName/image/upload');
+
+      // Create a multipart request
+      final request = http.MultipartRequest('POST', uploadUrl);
+
+      // Add the file and upload preset to the request
+      request.files.add(await http.MultipartFile.fromPath('file', file.path));
+      request.fields['upload_preset'] = uploadPreset!;
+
+      // Send the request to Cloudinary
+      final response = await request.send();
+
+      if (response.statusCode == 200) {
+        // Parse the response
+        final responseBody = await response.stream.bytesToString();
+        final responseData = jsonDecode(responseBody);
+
+        // Get the secure URL of the uploaded image
+        final imageUrl = responseData['secure_url'];
+        log('Uploaded Image URL: $imageUrl');
+
+        // Update the user's profile picture URL
+        me.image = imageUrl;
+        await firestore
+            .collection('users')
+            .doc(user.uid)
+            .update({'image': me.image});
+      } else {
+        log('Cloudinary upload failed with status code: ${response.statusCode}');
+        throw Exception('Failed to upload image to Cloudinary');
+      }
+    } catch (e) {
+      log('Error in updateProfilePicture: $e');
+      rethrow;
+    }
   }
 }
