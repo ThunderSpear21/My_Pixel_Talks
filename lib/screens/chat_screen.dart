@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:my_pixel_talks/api/apis.dart';
 import 'package:my_pixel_talks/main.dart';
 import 'package:my_pixel_talks/models/chat_user.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:my_pixel_talks/models/message.dart';
+import 'package:my_pixel_talks/widgets/message_card.dart';
 
 class ChatScreen extends StatefulWidget {
   final ChatUser user;
@@ -13,6 +16,8 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
+  List<Message> _list = [];
+  final TextEditingController _textController = TextEditingController();
   @override
   void initState() {
     super.initState();
@@ -32,42 +37,41 @@ class _ChatScreenState extends State<ChatScreen> {
           automaticallyImplyLeading: false,
           flexibleSpace: _appBar(),
         ),
+        backgroundColor: Colors.lightBlue.shade100,
         body: Column(
           children: [
             Expanded(
               child: StreamBuilder(
-                stream: null,
-                builder: (context, snapshot) {
-                  switch (snapshot.connectionState) {
-                    case ConnectionState.waiting:
-                    case ConnectionState.none:
-                      return const Center(child: CircularProgressIndicator());
-                    case ConnectionState.active:
-                    case ConnectionState.done:
-                      // final data = snapshot.data?.docs;
-                      // _list = data
-                      //         ?.map((e) => ChatUser.fromJson(e.data()))
-                      //         .toList() ??
-                      //     [];
-                      final _list = [];
-                      if (_list.isNotEmpty) {
-                        return ListView.builder(
-                            physics: const BouncingScrollPhysics(),
-                            itemCount:
-                                 _list.length,
-                            itemBuilder: (context, index) {
-                              return Text('Message');
-                            });
-                      } else {
-                        return const Center(
-                            child: Text(
-                          'Say Hii !! 👋',
-                          style: TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.w500),
-                        ));
-                      }
-                  }
-                }),
+                  stream: Apis.getAllMessages(widget.user),
+                  builder: (context, snapshot) {
+                    switch (snapshot.connectionState) {
+                      case ConnectionState.waiting:
+                      case ConnectionState.none:
+                        return const Center(child: CircularProgressIndicator());
+                      case ConnectionState.active:
+                      case ConnectionState.done:
+                        final data = snapshot.data?.docs;
+                        _list = data
+                                ?.map((e) => Message.fromJson(e.data()))
+                                .toList() ??
+                            [];
+                        if (_list.isNotEmpty) {
+                          return ListView.builder(
+                              physics: const BouncingScrollPhysics(),
+                              itemCount: _list.length,
+                              itemBuilder: (context, index) {
+                                return MessageCard(message: _list[index]);
+                              });
+                        } else {
+                          return const Center(
+                              child: Text(
+                            'Say Hii !! 👋',
+                            style: TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.w500),
+                          ));
+                        }
+                    }
+                  }),
             ),
             _chatInputBar(),
           ],
@@ -143,14 +147,17 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Widget _chatInputBar() {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: mq.width * 0.02, vertical:  mq.height* 0.01),
+      padding: EdgeInsets.symmetric(
+          horizontal: mq.width * 0.02, vertical: mq.height * 0.01),
       child: Row(
         children: [
-          const SizedBox(width: 8,),
+          const SizedBox(
+            width: 8,
+          ),
           Expanded(
             child: Card(
-              shape:
-                  RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
               child: Row(
                 children: [
                   IconButton(
@@ -160,12 +167,13 @@ class _ChatScreenState extends State<ChatScreen> {
                       color: Colors.blueAccent,
                     ),
                   ),
-                  const Expanded(
+                  Expanded(
                       child: TextField(
-                        keyboardType: TextInputType.multiline,
-                        maxLines: 6,
-                        minLines: 1,
-                    decoration: InputDecoration(
+                    controller: _textController,
+                    keyboardType: TextInputType.multiline,
+                    maxLines: 6,
+                    minLines: 1,
+                    decoration: const InputDecoration(
                       hintText: 'Type Something ...',
                       hintStyle:
                           TextStyle(color: Colors.blueAccent, fontSize: 16),
@@ -191,10 +199,17 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ),
           MaterialButton(
-              onPressed: () {},
+              onPressed: () {
+                if(_textController.text.isNotEmpty)
+                {
+                  Apis.sendMessage(widget.user, _textController.text);
+                  _textController.clear();
+                }
+              },
               minWidth: 0,
               shape: const CircleBorder(),
-              padding: const EdgeInsets.only(top: 8, left: 8, bottom: 8, right: 4),
+              padding:
+                  const EdgeInsets.only(top: 8, left: 8, bottom: 8, right: 4),
               color: Colors.blueAccent,
               child: Icon(
                 Icons.send,

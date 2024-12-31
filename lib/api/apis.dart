@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:my_pixel_talks/models/chat_user.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:my_pixel_talks/models/message.dart';
 
 class Apis {
   static FirebaseAuth auth = FirebaseAuth.instance;
@@ -107,5 +108,47 @@ class Apis {
       log('Error in updateProfilePicture: $e');
       rethrow;
     }
+  }
+
+  static String getConversationID(String id) {
+    return (user.uid.hashCode <= id.hashCode)
+        ? '${user.uid}_$id'
+        : '${id}_${user.uid}';
+  }
+
+  static Stream<QuerySnapshot<Map<String, dynamic>>> getAllMessages(
+      ChatUser user) {
+    return firestore
+        .collection('chats/${getConversationID(user.id)}/messages/')
+        .snapshots();
+  }
+
+  static Future<void> sendMessage(ChatUser touser, String msg) async {
+    final ref =
+        firestore.collection('chats/${getConversationID(touser.id)}/messages/');
+    final time = DateTime.now().millisecondsSinceEpoch.toString();
+    final Message data = Message(
+        toId: touser.id,
+        msg: msg,
+        read: '',
+        type: Type.text,
+        fromId: user.uid,
+        sent: time);
+    await ref.doc(time).set(data.toJson());
+  }
+
+  static Future<void> updateReadTime(Message message) async {
+    firestore
+        .collection('chats/${getConversationID(message.fromId)}/messages/')
+        .doc(message.sent)
+        .update({'read': DateTime.now().millisecondsSinceEpoch.toString()});
+  }
+
+  static Stream<QuerySnapshot<Map<String, dynamic>>> getLastMessage(
+      ChatUser user) {
+    return firestore
+        .collection('chats/${getConversationID(user.id)}/messages/').orderBy('sent', descending: true)
+        .limit(1)
+        .snapshots();
   }
 }
