@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:my_pixel_talks/api/apis.dart';
 import 'package:my_pixel_talks/models/chat_user.dart';
 import 'package:my_pixel_talks/screens/profile_screen.dart';
@@ -21,6 +22,17 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     Apis.getSelfInfo();
+    Apis.updateActiveStatus(true);
+    SystemChannels.lifecycle.setMessageHandler((message) {
+      if (message.toString().contains('paused') ||
+          message.toString().contains('inactive')) {
+        Apis.updateActiveStatus(false);
+      }
+      if (message.toString().contains('resume')) {
+        Apis.updateActiveStatus(true);
+      }
+      return Future.value(message);
+    });
   }
 
   @override

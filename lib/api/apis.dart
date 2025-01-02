@@ -120,10 +120,12 @@ class Apis {
       ChatUser user) {
     return firestore
         .collection('chats/${getConversationID(user.id)}/messages/')
+        .orderBy('sent', descending: true)
         .snapshots();
   }
 
-  static Future<void> sendMessage(ChatUser touser, String msg) async {
+  static Future<void> sendMessage(
+      ChatUser touser, String msg, Type type) async {
     final ref =
         firestore.collection('chats/${getConversationID(touser.id)}/messages/');
     final time = DateTime.now().millisecondsSinceEpoch.toString();
@@ -131,7 +133,7 @@ class Apis {
         toId: touser.id,
         msg: msg,
         read: '',
-        type: Type.text,
+        type: type,
         fromId: user.uid,
         sent: time);
     await ref.doc(time).set(data.toJson());
@@ -147,8 +149,65 @@ class Apis {
   static Stream<QuerySnapshot<Map<String, dynamic>>> getLastMessage(
       ChatUser user) {
     return firestore
-        .collection('chats/${getConversationID(user.id)}/messages/').orderBy('sent', descending: true)
+        .collection('chats/${getConversationID(user.id)}/messages/')
+        .orderBy('sent', descending: true)
         .limit(1)
         .snapshots();
+  }
+
+  static Future<void> sendChatImage(ChatUser chatUser, File file) async {
+    try {
+      // Getting the Cloudinary details from environment variables
+      final cloudName = dotenv.env['CLOUDINARY_CLOUD_NAME'];
+      final uploadPreset = dotenv.env['CLOUDINARY_UPLOAD_PRESET'];
+
+      // Construct the Cloudinary upload URL
+      final uploadUrl =
+          Uri.parse('https://api.cloudinary.com/v1_1/$cloudName/image/upload');
+
+      // Create a multipart request
+      final request = http.MultipartRequest('POST', uploadUrl);
+
+      // Add the file and upload preset to the request
+      request.files.add(await http.MultipartFile.fromPath('file', file.path));
+      request.fields['upload_preset'] = uploadPreset!;
+
+      // Send the request to Cloudinary
+      final response = await request.send();
+
+      if (response.statusCode == 200) {
+        // Parse the response
+        final responseBody = await response.stream.bytesToString();
+        final responseData = jsonDecode(responseBody);
+
+        // Get the secure URL of the uploaded image
+        final imageUrl = responseData['secure_url'];
+        log('Uploaded Chat Image URL: $imageUrl');
+
+        // Send the message with the image URL
+        await sendMessage(chatUser, imageUrl, Type.image);
+      } else {
+        log('Cloudinary upload failed with status code: ${response.statusCode}');
+        throw Exception('Failed to upload chat image to Cloudinary');
+      }
+    } catch (e) {
+      log('Error in sendChatImage: $e');
+      rethrow;
+    }
+  }
+
+  static Stream<QuerySnapshot<Map<String, dynamic>>> getUserInfo(
+      ChatUser chatUser) {
+    return firestore
+        .collection('users')
+        .where('id', isEqualTo: chatUser.id)
+        .snapshots();
+  }
+
+  static Future<void> updateActiveStatus(bool isOnline) async {
+    firestore.collection('users').doc(user.uid).update({
+      'is_online': isOnline,
+      'last_active': DateTime.now().millisecondsSinceEpoch.toString(),
+    });
   }
 }
