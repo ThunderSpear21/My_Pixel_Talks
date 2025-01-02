@@ -5,6 +5,7 @@ import 'package:my_pixel_talks/helper/my_date_util.dart';
 import 'package:my_pixel_talks/models/chat_user.dart';
 import 'package:my_pixel_talks/models/message.dart';
 import 'package:my_pixel_talks/screens/chat_screen.dart';
+import 'package:my_pixel_talks/widgets/dialogs/profile_dialog.dart';
 
 class ChatUserCard extends StatefulWidget {
   final ChatUser user;
@@ -47,15 +48,20 @@ class _ChatUserCardState extends State<ChatUserCard> {
                 }
                 return ListTile(
                     //leading: const CircleAvatar(),
-                    leading: ClipRRect(
-                      borderRadius: BorderRadius.circular(mq.height * 0.055),
-                      child: CachedNetworkImage(
-                        height: mq.height * 0.055,
-                        width: mq.height * 0.055,
-                        imageUrl: widget.user.image,
-                        errorWidget: (context, url, error) =>
-                            const CircleAvatar(
-                          child: Icon(Icons.person),
+                    leading: InkWell(
+                      onTap: (){
+                        showDialog(context: context, builder: (_) => ProfileDialog(chatUser: widget.user));
+                      },
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(mq.height * 0.055),
+                        child: CachedNetworkImage(
+                          height: mq.height * 0.055,
+                          width: mq.height * 0.055,
+                          imageUrl: widget.user.image,
+                          errorWidget: (context, url, error) =>
+                              const CircleAvatar(
+                            child: Icon(Icons.person),
+                          ),
                         ),
                       ),
                     ),

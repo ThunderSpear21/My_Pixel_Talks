@@ -8,6 +8,7 @@ import 'package:my_pixel_talks/helper/dialogs.dart';
 import 'package:my_pixel_talks/models/chat_user.dart';
 import 'package:my_pixel_talks/main.dart';
 import 'package:my_pixel_talks/screens/auth/login_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ProfileScreen extends StatefulWidget {
   final ChatUser user;
@@ -33,10 +34,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
         floatingActionButton: FloatingActionButton.extended(
           onPressed: () async {
             Dialogs.showProgressBar(context);
+
+            await Apis.updateActiveStatus(false);
+
             await Apis.auth.signOut().then((value) async {
               await GoogleSignIn().signOut().then((value) {
                 // ignore: use_build_context_synchronously
                 Navigator.pop(context);
+                Apis.auth = FirebaseAuth.instance;
                 Navigator.pushAndRemoveUntil(
                   // ignore: use_build_context_synchronously
                   context,

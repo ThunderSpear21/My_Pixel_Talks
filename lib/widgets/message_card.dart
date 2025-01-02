@@ -4,6 +4,7 @@ import 'package:my_pixel_talks/helper/my_date_util.dart';
 import 'package:my_pixel_talks/main.dart';
 import 'package:my_pixel_talks/models/message.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:my_pixel_talks/screens/full_screen_image_view.dart';
 
 class MessageCard extends StatefulWidget {
   const MessageCard({super.key, required this.message});
@@ -47,25 +48,33 @@ class _MessageCardState extends State<MessageCard> {
                     widget.message.msg,
                     style: const TextStyle(fontSize: 15, color: Colors.black),
                   )
-                : ClipRRect(
-                    borderRadius: BorderRadius.circular(mq.height * 0.005),
-                    child: CachedNetworkImage(
-                      imageUrl: widget.message.msg,
-                      placeholder: (context, url) =>
-                          const Padding(
-                            padding: EdgeInsets.all(8.0),
-                            child: CircularProgressIndicator(
-                                                    strokeWidth: 2,
-                                                  ),
+                : GestureDetector(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => FullScreenImageView(imageUrl: widget.message.msg),
+                    ),
+                  ),
+                  child: ClipRRect(
+                      borderRadius: BorderRadius.circular(mq.height * 0.005),
+                      child: CachedNetworkImage(
+                        imageUrl: widget.message.msg,
+                        placeholder: (context, url) =>
+                            const Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: CircularProgressIndicator(
+                                                      strokeWidth: 2,
+                                                    ),
+                            ),
+                        errorWidget: (context, url, error) => const CircleAvatar(
+                          child: Icon(
+                            Icons.image,
+                            size: 70,
                           ),
-                      errorWidget: (context, url, error) => const CircleAvatar(
-                        child: Icon(
-                          Icons.image,
-                          size: 70,
                         ),
                       ),
                     ),
-                  ),
+                ),
           ),
         ),
         Padding(
@@ -119,25 +128,33 @@ class _MessageCardState extends State<MessageCard> {
                     widget.message.msg,
                     style: const TextStyle(fontSize: 15, color: Colors.black),
                   )
-                : ClipRRect(
-                    borderRadius: BorderRadius.circular(mq.height * 0.005),
-                    child: CachedNetworkImage(
-                      imageUrl: widget.message.msg,
-                      placeholder: (context, url) =>
-                          const Padding(
-                            padding: EdgeInsets.all(8.0),
-                            child: CircularProgressIndicator(
-                                                    strokeWidth: 2,
-                                                  ),
+                : GestureDetector(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => FullScreenImageView(imageUrl: widget.message.msg),
+                    ),
+                  ),
+                  child: ClipRRect(
+                      borderRadius: BorderRadius.circular(mq.height * 0.005),
+                      child: CachedNetworkImage(
+                        imageUrl: widget.message.msg,
+                        placeholder: (context, url) =>
+                            const Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: CircularProgressIndicator(
+                                                      strokeWidth: 2,
+                                                    ),
+                            ),
+                        errorWidget: (context, url, error) => const CircleAvatar(
+                          child: Icon(
+                            Icons.image,
+                            size: 70,
                           ),
-                      errorWidget: (context, url, error) => const CircleAvatar(
-                        child: Icon(
-                          Icons.image,
-                          size: 70,
                         ),
                       ),
                     ),
-                  ),
+                ),
           ),
         ),
       ],

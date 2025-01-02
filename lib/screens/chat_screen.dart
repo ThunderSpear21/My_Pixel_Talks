@@ -7,6 +7,7 @@ import 'package:my_pixel_talks/main.dart';
 import 'package:my_pixel_talks/models/chat_user.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:my_pixel_talks/models/message.dart';
+import 'package:my_pixel_talks/screens/view_profile_screen.dart';
 import 'package:my_pixel_talks/widgets/message_card.dart';
 import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'package:image_picker/image_picker.dart';
@@ -125,7 +126,12 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Widget _appBar() {
     return InkWell(
-      onTap: () {},
+      onTap: () {
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (_) => ViewProfileScreen(user: widget.user)));
+      },
       child: Padding(
         padding: const EdgeInsets.only(top: 1.0),
         child: StreamBuilder(

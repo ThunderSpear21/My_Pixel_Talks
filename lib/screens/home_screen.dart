@@ -24,12 +24,14 @@ class _HomeScreenState extends State<HomeScreen> {
     Apis.getSelfInfo();
     Apis.updateActiveStatus(true);
     SystemChannels.lifecycle.setMessageHandler((message) {
-      if (message.toString().contains('paused') ||
-          message.toString().contains('inactive')) {
-        Apis.updateActiveStatus(false);
-      }
-      if (message.toString().contains('resume')) {
-        Apis.updateActiveStatus(true);
+      if (Apis.auth.currentUser != null) {
+        if (message.toString().contains('paused') ||
+            message.toString().contains('inactive')) {
+          Apis.updateActiveStatus(false);
+        }
+        if (message.toString().contains('resume')) {
+          Apis.updateActiveStatus(true);
+        }
       }
       return Future.value(message);
     });
