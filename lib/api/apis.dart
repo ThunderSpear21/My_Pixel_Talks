@@ -4,15 +4,30 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:my_pixel_talks/api/notification_access_token.dart';
 import 'package:my_pixel_talks/models/chat_user.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:my_pixel_talks/models/message.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:crypto/crypto.dart';
 
 class Apis {
   static FirebaseAuth auth = FirebaseAuth.instance;
   static FirebaseFirestore firestore = FirebaseFirestore.instance;
   static User get user => auth.currentUser!;
   static late ChatUser me;
+  static FirebaseMessaging firebaseMessaging = FirebaseMessaging.instance;
+
+  static Future<void> getFirebaseMessagingToken() async {
+    await firebaseMessaging.requestPermission();
+    await firebaseMessaging.getToken().then((value) {
+      if (value != null) {
+        me.pushToken = value;
+        log('push token : $value');
+      }
+    });
+  }
+
   static Future<bool> userExists(UserCredential user) async {
     return (await firestore
             .collection('users')
@@ -25,6 +40,9 @@ class Apis {
     await firestore.collection('users').doc(user.uid).get().then((user) async {
       if (user.exists) {
         me = ChatUser.fromJson(user.data()!);
+        await getFirebaseMessagingToken().then((value) {
+          Apis.updateActiveStatus(true);
+        });
       } else {
         await createUser().then((value) {
           getSelfInfo();
@@ -136,7 +154,8 @@ class Apis {
         type: type,
         fromId: user.uid,
         sent: time);
-    await ref.doc(time).set(data.toJson());
+    await ref.doc(time).set(data.toJson()).then((value) =>
+        sendPushNotification(touser, type == Type.text ? msg : 'Image'));
   }
 
   static Future<void> updateReadTime(Message message) async {
@@ -182,7 +201,7 @@ class Apis {
 
         // Get the secure URL of the uploaded image
         final imageUrl = responseData['secure_url'];
-        log('Uploaded Chat Image URL: $imageUrl');
+        log('Uploaded Chat Image Public Id: $responseData');
 
         // Send the message with the image URL
         await sendMessage(chatUser, imageUrl, Type.image);
@@ -208,6 +227,112 @@ class Apis {
     firestore.collection('users').doc(user.uid).update({
       'is_online': isOnline,
       'last_active': DateTime.now().millisecondsSinceEpoch.toString(),
+      'push_token': me.pushToken,
     });
   }
+
+  static Future<void> sendPushNotification(
+      ChatUser chatUser, String msg) async {
+    try {
+      final body = {
+        "message": {
+          "token": chatUser.pushToken,
+          "notification": {
+            "title": me.name, //our name should be send
+            "body": msg,
+          },
+        }
+      };
+
+      // Firebase Project > Project Settings > General Tab > Project ID
+      const projectID = 'my-pixel-talks';
+
+      // get firebase admin token
+      final bearerToken = await NotificationAccessToken.getToken;
+
+      log('bearerToken: $bearerToken');
+
+      // handle null token
+      if (bearerToken == null) return;
+
+      var res = await http.post(
+        Uri.parse(
+            'https://fcm.googleapis.com/v1/projects/$projectID/messages:send'),
+        headers: {
+          HttpHeaders.contentTypeHeader: 'application/json',
+          HttpHeaders.authorizationHeader: 'Bearer $bearerToken'
+        },
+        body: jsonEncode(body),
+      );
+
+      log('Response status: ${res.statusCode}');
+      log('Response body: ${res.body}');
+    } catch (e) {
+      log('\nsendPushNotificationE: $e');
+    }
+  }
+
+  static Future<void> deleteMessage(Message message) async {
+  try {
+    // If the message type is an image, delete it from Cloudinary
+    if (message.type == Type.image) {
+      // Extract Cloudinary details from environment variables
+      final cloudName = dotenv.env['CLOUDINARY_CLOUD_NAME'];
+      final apiKey = dotenv.env['CLOUDINARY_API_KEY'];
+      final apiSecret = dotenv.env['CLOUDINARY_API_SECRET'];
+
+      if (cloudName == null || apiKey == null || apiSecret == null) {
+        throw Exception("Cloudinary credentials are not set in .env");
+      }
+
+      // Extract the public ID from the URL
+      final String url = message.msg;
+      final uri = Uri.parse(url);
+
+      // Extract the public ID by removing the directory structure and versioning
+      final publicIdWithExtension = uri.pathSegments.last; // e.g., "scaled_xxx.jpg"
+      final publicId = publicIdWithExtension.split('.').first; // Removes ".jpg"
+
+      // Create the Cloudinary delete URL
+      final deleteUrl = Uri.parse(
+        'https://api.cloudinary.com/v1_1/$cloudName/image/destroy',
+      );
+
+      // Construct the API request
+      final timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      final signatureData = 'public_id=$publicId&timestamp=$timestamp$apiSecret';
+      final signature = sha1.convert(utf8.encode(signatureData)).toString();
+
+      final response = await http.post(
+        deleteUrl,
+        headers: {
+          HttpHeaders.contentTypeHeader: 'application/x-www-form-urlencoded',
+        },
+        body: {
+          'public_id': publicId,
+          'api_key': apiKey,
+          'timestamp': timestamp.toString(),
+          'signature': signature,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        log('Image deleted successfully from Cloudinary: $publicId');
+      } else {
+        log('Failed to delete image from Cloudinary: ${response.body}');
+        throw Exception('Cloudinary delete error: ${response.body}');
+      }
+    }
+
+    // Delete the message from Firestore
+    await firestore
+        .collection('chats/${getConversationID(message.toId)}/messages/')
+        .doc(message.sent)
+        .delete();
+    log('Message deleted successfully from Firestore');
+  } catch (e) {
+    log('Error deleting message or image: $e');
+  }
+}
+
 }

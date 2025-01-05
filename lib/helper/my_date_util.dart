@@ -68,4 +68,21 @@ class MyDateUtil {
 
     return '';
   }
+
+  static String getMessageTime(
+      {required BuildContext context,
+      required String time,}) {
+    final DateTime sent = DateTime.fromMillisecondsSinceEpoch(int.parse(time));
+    final DateTime now = DateTime.now();
+    final formattedTime = TimeOfDay.fromDateTime(sent).format(context);
+    if (now.day == sent.day &&
+        now.month == sent.month &&
+        now.year == sent.year) {
+      return formattedTime;
+    } else {
+      return now.year!=sent.year
+          ? '$formattedTime ${sent.day} ${_getMonth(sent)} ${sent.year}'
+          : '$formattedTime ${sent.day} ${_getMonth(sent)}';
+    }
+  }
 }

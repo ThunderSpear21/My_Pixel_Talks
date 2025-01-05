@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:my_pixel_talks/api/apis.dart';
+import 'package:my_pixel_talks/helper/dialogs.dart';
 import 'package:my_pixel_talks/helper/my_date_util.dart';
 import 'package:my_pixel_talks/main.dart';
 import 'package:my_pixel_talks/models/message.dart';
@@ -16,9 +18,13 @@ class MessageCard extends StatefulWidget {
 class _MessageCardState extends State<MessageCard> {
   @override
   Widget build(BuildContext context) {
-    return widget.message.fromId == Apis.user.uid
-        ? _greenMessage()
-        : _blueMessage();
+    bool isMe = widget.message.fromId == Apis.user.uid;
+    return InkWell(
+      onLongPress: () {
+        _showBottomScreen(isMe);
+      },
+      child: isMe ? _greenMessage() : _blueMessage(),
+    );
   }
 
   Widget _blueMessage() {
@@ -49,24 +55,25 @@ class _MessageCardState extends State<MessageCard> {
                     style: const TextStyle(fontSize: 15, color: Colors.black),
                   )
                 : GestureDetector(
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => FullScreenImageView(imageUrl: widget.message.msg),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            FullScreenImageView(imageUrl: widget.message.msg),
+                      ),
                     ),
-                  ),
-                  child: ClipRRect(
+                    child: ClipRRect(
                       borderRadius: BorderRadius.circular(mq.height * 0.005),
                       child: CachedNetworkImage(
                         imageUrl: widget.message.msg,
-                        placeholder: (context, url) =>
-                            const Padding(
-                              padding: EdgeInsets.all(8.0),
-                              child: CircularProgressIndicator(
-                                                      strokeWidth: 2,
-                                                    ),
-                            ),
-                        errorWidget: (context, url, error) => const CircleAvatar(
+                        placeholder: (context, url) => const Padding(
+                          padding: EdgeInsets.all(8.0),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                          ),
+                        ),
+                        errorWidget: (context, url, error) =>
+                            const CircleAvatar(
                           child: Icon(
                             Icons.image,
                             size: 70,
@@ -74,7 +81,7 @@ class _MessageCardState extends State<MessageCard> {
                         ),
                       ),
                     ),
-                ),
+                  ),
           ),
         ),
         Padding(
@@ -129,24 +136,25 @@ class _MessageCardState extends State<MessageCard> {
                     style: const TextStyle(fontSize: 15, color: Colors.black),
                   )
                 : GestureDetector(
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => FullScreenImageView(imageUrl: widget.message.msg),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            FullScreenImageView(imageUrl: widget.message.msg),
+                      ),
                     ),
-                  ),
-                  child: ClipRRect(
+                    child: ClipRRect(
                       borderRadius: BorderRadius.circular(mq.height * 0.005),
                       child: CachedNetworkImage(
                         imageUrl: widget.message.msg,
-                        placeholder: (context, url) =>
-                            const Padding(
-                              padding: EdgeInsets.all(8.0),
-                              child: CircularProgressIndicator(
-                                                      strokeWidth: 2,
-                                                    ),
-                            ),
-                        errorWidget: (context, url, error) => const CircleAvatar(
+                        placeholder: (context, url) => const Padding(
+                          padding: EdgeInsets.all(8.0),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                          ),
+                        ),
+                        errorWidget: (context, url, error) =>
+                            const CircleAvatar(
                           child: Icon(
                             Icons.image,
                             size: 70,
@@ -154,10 +162,145 @@ class _MessageCardState extends State<MessageCard> {
                         ),
                       ),
                     ),
-                ),
+                  ),
           ),
         ),
       ],
+    );
+  }
+
+  void _showBottomScreen(bool isMe) {
+    showModalBottomSheet(
+        context: context,
+        shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(25), topRight: Radius.circular(25))),
+        builder: (ctx) {
+          return ListView(
+            shrinkWrap: true,
+            children: [
+              Container(
+                height: 4,
+                margin: EdgeInsets.symmetric(
+                    vertical: mq.height * 0.01, horizontal: mq.width * 0.4),
+                decoration: BoxDecoration(
+                    color: Colors.grey, borderRadius: BorderRadius.circular(8)),
+              ),
+              widget.message.type == Type.text
+                  ? _OptionItem(
+                      icon: const Icon(
+                        Icons.copy_outlined,
+                        color: Colors.blue,
+                      ),
+                      name: 'Copy Text',
+                      onTap: () async {
+                        await Clipboard.setData(
+                                ClipboardData(text: widget.message.msg))
+                            .then((value) {
+                          if (ctx.mounted) {
+                            // ignore: use_build_context_synchronously
+                            Navigator.of(ctx).pop();
+                            Dialogs.showSnackbar(
+                                // ignore: use_build_context_synchronously
+                                ctx, 'Text Copied to Device Clipboard');
+                          }
+                        });
+                      },
+                    )
+                  : _OptionItem(
+                      icon: const Icon(
+                        Icons.file_download,
+                        color: Colors.blue,
+                      ),
+                      name: 'Save Image',
+                      onTap: () {},
+                    ),
+              Divider(
+                color: Colors.black45,
+                endIndent: mq.width * 0.04,
+                indent: mq.width * 0.04,
+              ),
+              if (widget.message.type == Type.text && isMe)
+                _OptionItem(
+                  icon: const Icon(
+                    Icons.edit,
+                    color: Colors.amber,
+                  ),
+                  name: 'Edit Message',
+                  onTap: () {},
+                ),
+              if (isMe)
+                _OptionItem(
+                  icon: const Icon(
+                    Icons.delete_rounded,
+                    color: Colors.red,
+                  ),
+                  name: 'Delete Message',
+                  onTap: () async{
+                    await Apis.deleteMessage(widget.message).then((value){
+                      // ignore: use_build_context_synchronously
+                      Navigator.of(ctx).pop();
+                    });
+                  },
+                ),
+              if (isMe)
+                Divider(
+                  color: Colors.black45,
+                  endIndent: mq.width * 0.04,
+                  indent: mq.width * 0.04,
+                ),
+              _OptionItem(
+                icon: const Icon(
+                  Icons.remove_red_eye,
+                  color: Colors.blue,
+                ),
+                name:
+                    'Sent At:  ${MyDateUtil.getMessageTime(context: context, time: widget.message.sent)}',
+                onTap: () {},
+              ),
+              _OptionItem(
+                icon: const Icon(
+                  Icons.remove_red_eye,
+                  color: Colors.green,
+                ),
+                name: (widget.message.read != "")
+                    ? 'Read At:  ${MyDateUtil.getMessageTime(context: context, time: widget.message.read)}'
+                    : 'Read At: Not Seen Yet',
+                onTap: () {},
+              ),
+            ],
+          );
+        });
+  }
+}
+
+class _OptionItem extends StatelessWidget {
+  final Icon icon;
+  final String name;
+  final VoidCallback onTap;
+  const _OptionItem(
+      {required this.icon, required this.name, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: EdgeInsets.only(
+            left: mq.width * 0.07,
+            top: mq.height * 0.015,
+            bottom: mq.height * 0.02),
+        child: Row(
+          children: [
+            icon,
+            Text(
+              '     $name',
+              style: const TextStyle(
+                  letterSpacing: 0.5, fontSize: 16, color: Colors.black54),
+            )
+          ],
+        ),
+      ),
     );
   }
 }
