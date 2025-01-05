@@ -33,7 +33,7 @@ void main() async {
     name: 'Chats',
     visibility: NotificationVisibility.VISIBILITY_PUBLIC,
   );
-  log('$result');
+  log(result);
   await dotenv.load(fileName: '.env');
   // Run the app
   runApp(const MyApp());

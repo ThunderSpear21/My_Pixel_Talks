@@ -60,6 +60,7 @@ dev_dependencies:
   googleapis_auth: ^1.6.0
   flutter_notification_channel: ^3.1.0
   crypto: ^3.0.6
+  gallery_saver_plus: ^3.2.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

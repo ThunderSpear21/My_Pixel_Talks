@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:my_pixel_talks/api/apis.dart';
@@ -7,6 +9,7 @@ import 'package:my_pixel_talks/main.dart';
 import 'package:my_pixel_talks/models/message.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:my_pixel_talks/screens/full_screen_image_view.dart';
+import 'package:gallery_saver_plus/gallery_saver.dart';
 
 class MessageCard extends StatefulWidget {
   const MessageCard({super.key, required this.message});
@@ -202,7 +205,8 @@ class _MessageCardState extends State<MessageCard> {
                             Navigator.of(ctx).pop();
                             Dialogs.showSnackbar(
                                 // ignore: use_build_context_synchronously
-                                ctx, 'Text Copied to Device Clipboard');
+                                ctx,
+                                'Text Copied to Device Clipboard');
                           }
                         });
                       },
@@ -213,7 +217,26 @@ class _MessageCardState extends State<MessageCard> {
                         color: Colors.blue,
                       ),
                       name: 'Save Image',
-                      onTap: () {},
+                      onTap: () async {
+                        try {
+                          await GallerySaver.saveImage(widget.message.msg,
+                                  albumName: "Pixel Talks")
+                              .then((success) {
+                            if (ctx.mounted) {
+                              // ignore: use_build_context_synchronously
+                              Navigator.of(ctx).pop();
+                              if (success != null && success) {
+                                Dialogs.showSnackbar(
+                                    // ignore: use_build_context_synchronously
+                                    ctx,
+                                    'Image saved to Device');
+                              }
+                            }
+                          });
+                        } catch (e) {
+                          log(e.toString());
+                        }
+                      },
                     ),
               Divider(
                 color: Colors.black45,
@@ -227,7 +250,13 @@ class _MessageCardState extends State<MessageCard> {
                     color: Colors.amber,
                   ),
                   name: 'Edit Message',
-                  onTap: () {},
+                  onTap: () {
+                    if (ctx.mounted) {
+                      // ignore: use_build_context_synchronously
+                      Navigator.of(ctx).pop();
+                    }
+                    _showMessageUpdateDialog();
+                  },
                 ),
               if (isMe)
                 _OptionItem(
@@ -236,8 +265,8 @@ class _MessageCardState extends State<MessageCard> {
                     color: Colors.red,
                   ),
                   name: 'Delete Message',
-                  onTap: () async{
-                    await Apis.deleteMessage(widget.message).then((value){
+                  onTap: () async {
+                    await Apis.deleteMessage(widget.message).then((value) {
                       // ignore: use_build_context_synchronously
                       Navigator.of(ctx).pop();
                     });
@@ -271,6 +300,59 @@ class _MessageCardState extends State<MessageCard> {
             ],
           );
         });
+  }
+
+  void _showMessageUpdateDialog() {
+    String updatedMessage = widget.message.msg;
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(
+              Icons.message,
+              color: Colors.blue,
+              size: 24,
+            ),
+            Text(
+              '   Update Message',
+              style: TextStyle(fontSize: 20),
+            )
+          ],
+        ),
+        contentPadding: const EdgeInsets.only(left: 24, right: 24, top: 20, bottom: 10),
+        content: TextFormField(
+          initialValue: updatedMessage,
+          maxLines: null,
+          onChanged: (value) => updatedMessage = value,
+          decoration: InputDecoration(
+              border:
+                  OutlineInputBorder(borderRadius: BorderRadius.circular(15))),
+        ),
+        actions: [
+          MaterialButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Colors.blue, fontSize: 16),
+            ),
+          ),
+          MaterialButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              Apis.updateMessage(widget.message, updatedMessage);
+            },
+            child: const Text(
+              'Update',
+              style: TextStyle(color: Colors.blue, fontSize: 16),
+            ),
+          )
+        ],
+      ),
+    );
   }
 }
 

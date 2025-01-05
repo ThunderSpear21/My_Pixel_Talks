@@ -70,11 +70,32 @@ class Apis {
         .set(chatuser.toJson());
   }
 
-  static Stream<QuerySnapshot<Map<String, dynamic>>> getAllUsers() {
+  static Stream<QuerySnapshot<Map<String, dynamic>>> getAllUsers(
+      List<String> userIds) {
     return firestore
         .collection('users')
-        .where('id', isNotEqualTo: user.uid)
+        .where('id', whereIn: userIds.isEmpty ? [''] : userIds)
         .snapshots();
+  }
+
+  static Stream<QuerySnapshot<Map<String, dynamic>>> getMyUsersId() {
+    return firestore
+        .collection('users')
+        .doc(user.uid)
+        .collection('my_users')
+        .snapshots();
+  }
+
+  static Future<void> sendFirstMessage(
+      ChatUser touser, String msg, Type type) async {
+    await firestore
+        .collection('users')
+        .doc(touser.id)
+        .collection('my_users')
+        .doc(user.uid)
+        .set({}).then((value) {
+      sendMessage(touser, msg, type);
+    });
   }
 
   static Future<void> updateUserInfo() async {
@@ -241,6 +262,11 @@ class Apis {
             "title": me.name, //our name should be send
             "body": msg,
           },
+          "android": {
+            "notification": {
+              "channel_id": "chats", // Your Android channel ID
+            }
+          }
         }
       };
 
@@ -273,66 +299,94 @@ class Apis {
   }
 
   static Future<void> deleteMessage(Message message) async {
-  try {
-    // If the message type is an image, delete it from Cloudinary
-    if (message.type == Type.image) {
-      // Extract Cloudinary details from environment variables
-      final cloudName = dotenv.env['CLOUDINARY_CLOUD_NAME'];
-      final apiKey = dotenv.env['CLOUDINARY_API_KEY'];
-      final apiSecret = dotenv.env['CLOUDINARY_API_SECRET'];
+    try {
+      // If the message type is an image, delete it from Cloudinary
+      if (message.type == Type.image) {
+        // Extract Cloudinary details from environment variables
+        final cloudName = dotenv.env['CLOUDINARY_CLOUD_NAME'];
+        final apiKey = dotenv.env['CLOUDINARY_API_KEY'];
+        final apiSecret = dotenv.env['CLOUDINARY_API_SECRET'];
 
-      if (cloudName == null || apiKey == null || apiSecret == null) {
-        throw Exception("Cloudinary credentials are not set in .env");
+        if (cloudName == null || apiKey == null || apiSecret == null) {
+          throw Exception("Cloudinary credentials are not set in .env");
+        }
+
+        // Extract the public ID from the URL
+        final String url = message.msg;
+        final uri = Uri.parse(url);
+
+        // Extract the public ID by removing the directory structure and versioning
+        final publicIdWithExtension =
+            uri.pathSegments.last; // e.g., "scaled_xxx.jpg"
+        final publicId =
+            publicIdWithExtension.split('.').first; // Removes ".jpg"
+
+        // Create the Cloudinary delete URL
+        final deleteUrl = Uri.parse(
+          'https://api.cloudinary.com/v1_1/$cloudName/image/destroy',
+        );
+
+        // Construct the API request
+        final timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+        final signatureData =
+            'public_id=$publicId&timestamp=$timestamp$apiSecret';
+        final signature = sha1.convert(utf8.encode(signatureData)).toString();
+
+        final response = await http.post(
+          deleteUrl,
+          headers: {
+            HttpHeaders.contentTypeHeader: 'application/x-www-form-urlencoded',
+          },
+          body: {
+            'public_id': publicId,
+            'api_key': apiKey,
+            'timestamp': timestamp.toString(),
+            'signature': signature,
+          },
+        );
+
+        if (response.statusCode == 200) {
+          log('Image deleted successfully from Cloudinary: $publicId');
+        } else {
+          log('Failed to delete image from Cloudinary: ${response.body}');
+          throw Exception('Cloudinary delete error: ${response.body}');
+        }
       }
 
-      // Extract the public ID from the URL
-      final String url = message.msg;
-      final uri = Uri.parse(url);
-
-      // Extract the public ID by removing the directory structure and versioning
-      final publicIdWithExtension = uri.pathSegments.last; // e.g., "scaled_xxx.jpg"
-      final publicId = publicIdWithExtension.split('.').first; // Removes ".jpg"
-
-      // Create the Cloudinary delete URL
-      final deleteUrl = Uri.parse(
-        'https://api.cloudinary.com/v1_1/$cloudName/image/destroy',
-      );
-
-      // Construct the API request
-      final timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-      final signatureData = 'public_id=$publicId&timestamp=$timestamp$apiSecret';
-      final signature = sha1.convert(utf8.encode(signatureData)).toString();
-
-      final response = await http.post(
-        deleteUrl,
-        headers: {
-          HttpHeaders.contentTypeHeader: 'application/x-www-form-urlencoded',
-        },
-        body: {
-          'public_id': publicId,
-          'api_key': apiKey,
-          'timestamp': timestamp.toString(),
-          'signature': signature,
-        },
-      );
-
-      if (response.statusCode == 200) {
-        log('Image deleted successfully from Cloudinary: $publicId');
-      } else {
-        log('Failed to delete image from Cloudinary: ${response.body}');
-        throw Exception('Cloudinary delete error: ${response.body}');
-      }
+      // Delete the message from Firestore
+      await firestore
+          .collection('chats/${getConversationID(message.toId)}/messages/')
+          .doc(message.sent)
+          .delete();
+      log('Message deleted successfully from Firestore');
+    } catch (e) {
+      log('Error deleting message or image: $e');
     }
+  }
 
-    // Delete the message from Firestore
+  static Future<void> updateMessage(
+      Message message, String updatedMessage) async {
     await firestore
         .collection('chats/${getConversationID(message.toId)}/messages/')
         .doc(message.sent)
-        .delete();
-    log('Message deleted successfully from Firestore');
-  } catch (e) {
-    log('Error deleting message or image: $e');
+        .update({'msg': updatedMessage});
   }
-}
 
+  static Future<bool> addChatUser(String email) async {
+    final data = await firestore
+        .collection('users')
+        .where('email', isEqualTo: email)
+        .get();
+    if (data.docs.isNotEmpty && data.docs.first.id != user.uid) {
+      firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('my_users')
+          .doc(data.docs.first.id)
+          .set({});
+      return true;
+    } else {
+      return false;
+    }
+  }
 }

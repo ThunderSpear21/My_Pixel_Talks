@@ -328,6 +328,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  gallery_saver_plus:
+    dependency: "direct dev"
+    description:
+      name: gallery_saver_plus
+      sha256: "79a3615a56fd5db42db77d6fe8315a0087d3e8f1ec01e6426810d4ed4c02dcbc"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.2.1"
   google_identity_services_web:
     dependency: transitive
     description:
