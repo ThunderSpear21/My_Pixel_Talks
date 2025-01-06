@@ -7,6 +7,7 @@ import 'package:my_pixel_talks/models/message.dart';
 import 'package:my_pixel_talks/screens/chat_screen.dart';
 import 'package:my_pixel_talks/widgets/dialogs/profile_dialog.dart';
 
+// Wisget to Build a ChatUSer card with the Details of the given User
 class ChatUserCard extends StatefulWidget {
   final ChatUser user;
   const ChatUserCard({super.key, required this.user});
@@ -38,6 +39,7 @@ class _ChatUserCardState extends State<ChatUserCard> {
           splashColor: Colors.blue.shade300,
           highlightColor: Colors.blue.shade300,
           child: StreamBuilder(
+            // Stream Builder to get the last message exchanged in the chat with the given User
               stream: Apis.getLastMessage(widget.user),
               builder: (context, snapshot) {
                 final data = snapshot.data?.docs;
@@ -72,6 +74,7 @@ class _ChatUserCardState extends State<ChatUserCard> {
                       ),
                     ),
                     subtitle: Text(
+                      // Display according to the last message exchanged in chat
                       (_message != null) ? (_message!.type == Type.text ? _message!.msg : 'Image') : widget.user.about,
                       maxLines: 1,
                       style: const TextStyle(

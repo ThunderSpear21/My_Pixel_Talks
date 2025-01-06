@@ -4,6 +4,7 @@ import 'package:my_pixel_talks/models/chat_user.dart';
 import 'package:my_pixel_talks/main.dart';
 import 'package:my_pixel_talks/widgets/profile_image.dart';
 
+  // Show ViewProfileScreen for the given user in the chat
 class ViewProfileScreen extends StatefulWidget {
   final ChatUser user;
   const ViewProfileScreen({super.key, required this.user});

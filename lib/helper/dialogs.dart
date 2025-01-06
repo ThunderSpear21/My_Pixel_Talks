@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class Dialogs {
+
+  // Helper Fucntion to display  a Snackbar at the bottom with the given content
   static void showSnackbar(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(message),

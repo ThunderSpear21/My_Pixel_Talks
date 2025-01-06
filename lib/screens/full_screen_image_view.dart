@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
+// Full Screen View of Image in Chat
 
 class FullScreenImageView extends StatelessWidget {
   final String imageUrl;

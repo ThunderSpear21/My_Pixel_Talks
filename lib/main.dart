@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 // ignore: depend_on_referenced_packages
 import 'package:firebase_core/firebase_core.dart';
@@ -11,7 +9,7 @@ import 'package:flutter_notification_channel/flutter_notification_channel.dart';
 import 'package:flutter_notification_channel/notification_importance.dart';
 import 'package:flutter_notification_channel/notification_visibility.dart';
 
-late Size mq;
+late Size mq; //Device resolution and dimensions
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,14 +24,17 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  var result = await FlutterNotificationChannel().registerNotificationChannel(
+
+  //Initialize Android Notification Channel
+  await FlutterNotificationChannel().registerNotificationChannel(
     description: 'Notification for Incoming Messages',
     id: 'chats',
     importance: NotificationImportance.IMPORTANCE_HIGH,
     name: 'Chats',
     visibility: NotificationVisibility.VISIBILITY_PUBLIC,
   );
-  log(result);
+
+  // Loading env variables
   await dotenv.load(fileName: '.env');
   // Run the app
   runApp(const MyApp());
@@ -60,6 +61,7 @@ class MyApp extends StatelessWidget {
           backgroundColor: Colors.white54,
         ),
       ),
+      // Starting Page
       home: const SplashScreen(),
     );
   }

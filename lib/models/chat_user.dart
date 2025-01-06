@@ -1,3 +1,4 @@
+// A Model for the Chat User
 class ChatUser {
   ChatUser({
     required this.image,

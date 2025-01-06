@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:my_pixel_talks/api/apis.dart';
 
+// Helper Class to display a Profile Image
 class ProfileImage extends StatelessWidget {
   final double size;
   final String? url;

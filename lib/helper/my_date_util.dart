@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+// Helper Class to format the time from "MillisecondsSinceEpoch to Human Readable Format"
 class MyDateUtil {
   static String getFormattedTime(
       {required BuildContext context, required String time}) {

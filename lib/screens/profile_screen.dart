@@ -72,6 +72,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   width: mq.width,
                 ),
                 Stack(children: [
+                  // Show User Profile Picture
                   (_image !=null) ? ClipRRect(
                     borderRadius: BorderRadius.circular(mq.height * 0.55),
                     child: Image.file(
@@ -92,6 +93,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                   ),
+                  // Show Edit Pfp Button
                   Positioned(
                     bottom: 5,
                     right: -10,
@@ -109,6 +111,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                 ]),
+                // Text Fields for User Info
                 SizedBox(
                   height: mq.height * 0.03,
                   width: mq.width,
@@ -167,6 +170,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   width: mq.width,
                 ),
                 ElevatedButton.icon(
+                  // Update User Info with the details in the given Text Fields
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
                       _formKey.currentState!.save();
@@ -199,6 +203,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  // Show a bottome screen for Image Picking Options from Gallery and Camera
   void _showBottomScreen() {
     showModalBottomSheet(
         context: context,

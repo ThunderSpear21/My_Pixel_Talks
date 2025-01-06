@@ -11,6 +11,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:my_pixel_talks/screens/full_screen_image_view.dart';
 import 'package:gallery_saver_plus/gallery_saver.dart';
 
+// Design a Message Card for a message to be displayed with the given contents in the ChatScreen
 class MessageCard extends StatefulWidget {
   const MessageCard({super.key, required this.message});
   final Message message;
@@ -26,11 +27,13 @@ class _MessageCardState extends State<MessageCard> {
       onLongPress: () {
         _showBottomScreen(isMe);
       },
+      // If Sender is Current User, show Green Message Card, else Blue Message Card
       child: isMe ? _greenMessage() : _blueMessage(),
     );
   }
 
   Widget _blueMessage() {
+    // While building a Recieved Message, if Read Time is empty, update Read Time
     if (widget.message.read.isEmpty) {
       Apis.updateReadTime(widget.message);
     }
@@ -172,6 +175,7 @@ class _MessageCardState extends State<MessageCard> {
     );
   }
 
+  // Bottom Screen to display more actions associated with a given message, ie, Save, Edit, Delete, Sent Time, Read Time
   void _showBottomScreen(bool isMe) {
     showModalBottomSheet(
         context: context,
@@ -302,6 +306,7 @@ class _MessageCardState extends State<MessageCard> {
         });
   }
 
+  // Show Update Message Dialog which updates given message with the contents of the provided Text Field
   void _showMessageUpdateDialog() {
     String updatedMessage = widget.message.msg;
     showDialog(
@@ -356,6 +361,7 @@ class _MessageCardState extends State<MessageCard> {
   }
 }
 
+// Helper Class to handle the display of the Actions in the Bottom Sheet
 class _OptionItem extends StatelessWidget {
   final Icon icon;
   final String name;

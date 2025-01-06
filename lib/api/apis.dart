@@ -18,6 +18,7 @@ class Apis {
   static late ChatUser me;
   static FirebaseMessaging firebaseMessaging = FirebaseMessaging.instance;
 
+  // Fetch and initialize PushToken for Notifications
   static Future<void> getFirebaseMessagingToken() async {
     await firebaseMessaging.requestPermission();
     await firebaseMessaging.getToken().then((value) {
@@ -28,6 +29,7 @@ class Apis {
     });
   }
 
+  // To check if a given user exists
   static Future<bool> userExists(UserCredential user) async {
     return (await firestore
             .collection('users')
@@ -36,6 +38,7 @@ class Apis {
         .exists;
   }
 
+  // Get Current User Info. If does not exist, then first create said user and then get the details
   static Future<void> getSelfInfo() async {
     await firestore.collection('users').doc(user.uid).get().then((user) async {
       if (user.exists) {
@@ -51,6 +54,7 @@ class Apis {
     });
   }
 
+  // Create User with the defualt information from Google SignIn
   static Future<void> createUser() async {
     final time = DateTime.now().millisecondsSinceEpoch.toString();
     final chatuser = ChatUser(
@@ -70,6 +74,7 @@ class Apis {
         .set(chatuser.toJson());
   }
 
+  // List of all existing user docs in the given List of userIds
   static Stream<QuerySnapshot<Map<String, dynamic>>> getAllUsers(
       List<String> userIds) {
     return firestore
@@ -78,6 +83,7 @@ class Apis {
         .snapshots();
   }
 
+  // List of all users the current User is chatting with
   static Stream<QuerySnapshot<Map<String, dynamic>>> getMyUsersId() {
     return firestore
         .collection('users')
@@ -86,6 +92,7 @@ class Apis {
         .snapshots();
   }
 
+  // To add recipient to 'my_users' list of the current user of the Conversation is empty
   static Future<void> sendFirstMessage(
       ChatUser touser, String msg, Type type) async {
     await firestore
@@ -98,12 +105,14 @@ class Apis {
     });
   }
 
+  // To update cuurent User 'name' and 'about' from the Profile Screen
   static Future<void> updateUserInfo() async {
     await firestore.collection('users').doc(user.uid).update(
       {'name': me.name, 'about': me.about},
     );
   }
 
+  // To update cuurent user 'profile picture' using Cloudinary
   static Future<void> updateProfilePicture(File file) async {
     try {
       // Getting the upload preset and Cloudinary details from environment variables
@@ -149,12 +158,14 @@ class Apis {
     }
   }
 
+  // To get the doc id, ie, Conversation ID of the current chat using the hash comparisons and interpolation of the reciever's and sender's uid's
   static String getConversationID(String id) {
     return (user.uid.hashCode <= id.hashCode)
         ? '${user.uid}_$id'
         : '${id}_${user.uid}';
   }
 
+  // To get a list of 'Messages' in the chats with the given User
   static Stream<QuerySnapshot<Map<String, dynamic>>> getAllMessages(
       ChatUser user) {
     return firestore
@@ -163,6 +174,7 @@ class Apis {
         .snapshots();
   }
 
+  // To send a Type.Text message to a user
   static Future<void> sendMessage(
       ChatUser touser, String msg, Type type) async {
     final ref =
@@ -179,6 +191,7 @@ class Apis {
         sendPushNotification(touser, type == Type.text ? msg : 'Image'));
   }
 
+  // To update read time of a given message
   static Future<void> updateReadTime(Message message) async {
     firestore
         .collection('chats/${getConversationID(message.fromId)}/messages/')
@@ -186,6 +199,7 @@ class Apis {
         .update({'read': DateTime.now().millisecondsSinceEpoch.toString()});
   }
 
+  // To get the last message exchanged in the chat to display on the ChatUser card
   static Stream<QuerySnapshot<Map<String, dynamic>>> getLastMessage(
       ChatUser user) {
     return firestore
@@ -195,6 +209,7 @@ class Apis {
         .snapshots();
   }
 
+  // To send a Type.Image message to a User using Cloudinary
   static Future<void> sendChatImage(ChatUser chatUser, File file) async {
     try {
       // Getting the Cloudinary details from environment variables
@@ -236,6 +251,7 @@ class Apis {
     }
   }
 
+  // To get the User info of the given user to display on the ViewProfileScreen
   static Stream<QuerySnapshot<Map<String, dynamic>>> getUserInfo(
       ChatUser chatUser) {
     return firestore
@@ -244,6 +260,7 @@ class Apis {
         .snapshots();
   }
 
+  // To update Activity Status of the current User
   static Future<void> updateActiveStatus(bool isOnline) async {
     firestore.collection('users').doc(user.uid).update({
       'is_online': isOnline,
@@ -252,6 +269,7 @@ class Apis {
     });
   }
 
+  // To send a POST request to FCM for Push Notifications to reciever User
   static Future<void> sendPushNotification(
       ChatUser chatUser, String msg) async {
     try {
@@ -298,6 +316,7 @@ class Apis {
     }
   }
 
+  // To delete a message from Firestore and Cloudinary(If needed)
   static Future<void> deleteMessage(Message message) async {
     try {
       // If the message type is an image, delete it from Cloudinary
@@ -364,6 +383,7 @@ class Apis {
     }
   }
 
+  // To update a pre-existing message
   static Future<void> updateMessage(
       Message message, String updatedMessage) async {
     await firestore
@@ -372,6 +392,7 @@ class Apis {
         .update({'msg': updatedMessage});
   }
 
+  // To add a User identified by the given E-Mail to the list of Users the current User chats with
   static Future<bool> addChatUser(String email) async {
     final data = await firestore
         .collection('users')

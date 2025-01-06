@@ -22,8 +22,11 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    // Load current User info
     Apis.getSelfInfo();
+    // Set Activity Status of current USer to online
     Apis.updateActiveStatus(true);
+    // Update Activity Status based on response of SystemChannels
     SystemChannels.lifecycle.setMessageHandler((message) {
       if (Apis.auth.currentUser != null) {
         if (message.toString().contains('paused') ||
@@ -44,10 +47,12 @@ class _HomeScreenState extends State<HomeScreen> {
       onTap: () {
         FocusScope.of(context).unfocus();
       },
+      // PopScope to handle Back Button Navigation depending on whether the Searching Bar is active or not
       child: PopScope(
         canPop: !_isSearching,
         onPopInvokedWithResult: (didPop, result) {
           if (_isSearching) {
+            // Update state of Search Bar
             setState(() {
               _isSearching = !_isSearching;
             });
@@ -91,6 +96,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   icon:
                       Icon(_isSearching ? Icons.close_rounded : Icons.search)),
               IconButton(
+                // Navigate to Profile Screen of current User
                   onPressed: () {
                     Navigator.push(
                         // ignore: use_build_context_synchronously
@@ -106,6 +112,7 @@ class _HomeScreenState extends State<HomeScreen> {
           floatingActionButton: Padding(
             padding: const EdgeInsets.only(right: 5, bottom: 15),
             child: FloatingActionButton(
+              // Add a user to list of Users based on a given E-Mail
               onPressed: () {
                 _showChatUserDialog();
               },
@@ -114,6 +121,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           body: StreamBuilder(
+            // Outer Stream Builder to get the list of users in 'my_users' collection of current user
               stream: Apis.getMyUsersId(),
               builder: (context, snapshot) {
                 switch (snapshot.connectionState) {
@@ -123,6 +131,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   case ConnectionState.active:
                   case ConnectionState.done:
                     return StreamBuilder(
+                      // Inner Stream Builder to get details of all users in the above list to display as ChatUser card
                         stream: Apis.getAllUsers(
                             snapshot.data?.docs.map((e) => e.id).toList() ??
                                 []),
@@ -170,6 +179,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  // Dialog to Add a User by E-Mail to list
   void _showChatUserDialog() {
     String email = "";
     showDialog(

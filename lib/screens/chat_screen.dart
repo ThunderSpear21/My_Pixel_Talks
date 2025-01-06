@@ -28,6 +28,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
+    // Set Dispaly Layout and Status Bar appearance
     Future.delayed(const Duration(milliseconds: 1), () {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
       SystemChrome.setSystemUIOverlayStyle(
@@ -38,8 +39,10 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
+      // To hide Keyboard and other Dialogs on Tap
       onTap: () => FocusScope.of(context).unfocus(),
       child: SafeArea(
+        // Pop Scope to handle Back Button depending upon Emoji Board open or not
         child: PopScope(
           canPop: !_showEmoji,
           onPopInvokedWithResult: (didPop, result) {
@@ -59,6 +62,7 @@ class _ChatScreenState extends State<ChatScreen> {
             body: Column(
               children: [
                 Expanded(
+                  // Stream Builder to get a list of all messages with the given User
                   child: StreamBuilder(
                       stream: Apis.getAllMessages(widget.user),
                       builder: (context, snapshot) {
@@ -83,6 +87,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                     return MessageCard(message: _list[index]);
                                   });
                             } else {
+                              //  Default Placeholder if the current chat is empty
                               return const Center(
                                   child: Text(
                                 'Say Hii !! 👋',
@@ -93,6 +98,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         }
                       }),
                 ),
+                // If a image is being uploaded to the chat
                 if (_isUploading)
                   const Align(
                     alignment: Alignment.centerRight,
@@ -123,7 +129,7 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
     );
   }
-
+  // Custom App Bar to handle navigation to User Profile and Activity Status
   Widget _appBar() {
     return InkWell(
       onTap: () {
@@ -134,6 +140,7 @@ class _ChatScreenState extends State<ChatScreen> {
       },
       child: Padding(
         padding: const EdgeInsets.only(top: 1.0),
+        // Stream Builder to get User info of given User
         child: StreamBuilder(
             stream: Apis.getUserInfo(widget.user),
             builder: (context, snapshot) {
@@ -210,7 +217,7 @@ class _ChatScreenState extends State<ChatScreen> {
       ),
     );
   }
-
+  // Bottom Input Bar containing Emoji Keyboard Button, Text  Field, Camera and Send Buttons
   Widget _chatInputBar() {
     return Padding(
       padding: EdgeInsets.symmetric(
@@ -228,6 +235,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 children: [
                   IconButton(
                     onPressed: () {
+                      // Toggle the status of the Emoji Keyboard
                       setState(() {
                         FocusScope.of(context).unfocus();
                         _showEmoji = !_showEmoji;
@@ -246,6 +254,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     minLines: 1,
                     onTap: () {
                       if (_showEmoji) {
+                        // Close the emoji keyboard if open before opening Text Keyboard
                         setState(() {
                           _showEmoji = !_showEmoji;
                         });
@@ -259,6 +268,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
                   )),
                   IconButton(
+                    // Gallery Image Picker
                     onPressed: () async {
                       final ImagePicker picker = ImagePicker();
                       final List<XFile> images =
@@ -282,6 +292,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
                   ),
                   IconButton(
+                    // Camera Image Picker
                     onPressed: () async {
                       final ImagePicker picker = ImagePicker();
                       final XFile? image = await picker.pickImage(
@@ -306,6 +317,7 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ),
           MaterialButton(
+            // Send Message Button
               onPressed: () {
                 if (_textController.text.isNotEmpty) {
                   if (_list.isEmpty) {

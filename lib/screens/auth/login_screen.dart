@@ -15,6 +15,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  // Function to handle events when Sign-in Button tapped
   googleloginbutton() {
     Dialogs.showProgressBar(context);
     signInWithGoogle().then((user) async {
@@ -37,7 +38,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     });
   }
-
+  // Function to handle Firebase Authentication
   Future<UserCredential?> signInWithGoogle() async {
     // Trigger the authentication flow
     try {

@@ -1,3 +1,4 @@
+// A model for a Message in a Chat
 class Message {
   Message({
     required this.toId,

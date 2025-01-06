@@ -4,6 +4,7 @@ import 'package:my_pixel_talks/models/chat_user.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:my_pixel_talks/screens/view_profile_screen.dart';
 
+// Show Profile Dialog Box to view Pfp of given User from the List of ChatUser Cards on HomeScreen
 class ProfileDialog extends StatelessWidget {
   const ProfileDialog({super.key, required this.chatUser});
   final ChatUser chatUser;
