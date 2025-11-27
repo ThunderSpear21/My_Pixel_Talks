@@ -50,7 +50,7 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyAOiJimspOpsunpYt7H9wI4UIVVvBxwXY8',
+    apiKey: '',
     appId: '1:771871107063:android:182dd3daa22eff580270f2',
     messagingSenderId: '771871107063',
     projectId: 'my-pixel-talks',
@@ -58,7 +58,7 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyBFCKzgLOX_nOAgTJJRUd_3mvAtM2fG704',
+    apiKey: '',
     appId: '1:771871107063:ios:8e39bca93fc75ef40270f2',
     messagingSenderId: '771871107063',
     projectId: 'my-pixel-talks',
